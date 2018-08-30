@@ -14,6 +14,21 @@ class Calculator {
         return $this->options;
     }
 
+    public function calculateRequirements(Int $widgets): Array
+    {
+        $requirements = [];
+        $options = $this->getOptions();
+
+
+        while ($widgets > 0) {
+            $next = $this->getNext($options, $widgets);
+            $widgets -= $next;
+            array_push($requirements, $next);
+        }
+
+        return $requirements;
+    }
+
     /**
      * @param $options
      */
@@ -32,8 +47,28 @@ class Calculator {
             return is_int($item);
         });
 
-        sort($options);
+        rsort($options);
 
         return $options;
+    }
+
+    private function getNext($options, $widgets)
+    {
+        if ($widgets >= max($options)) {
+            return max($options);
+        }
+
+        foreach ($options as $key => $option) {
+            echo $widgets.'-'.$option.PHP_EOL;
+            if ($widgets - $option == 0) {
+                return $option;
+            }
+
+            if ($widgets - $option >= 0) {
+                return in_array($option * 2, $options) ? $option * 2 : $option;
+            }
+        }
+
+        return min($options);
     }
 }
