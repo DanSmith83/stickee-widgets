@@ -28,7 +28,10 @@ class Calculator {
      */
     private function sortOptions(Array $options)
     {
-        $options = array_unique($options);
+        $options = array_filter( array_unique($options), function($item) {
+            return is_int($item);
+        });
+
         sort($options);
 
         return $options;
