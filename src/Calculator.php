@@ -14,19 +14,41 @@ class Calculator {
         return $this->options;
     }
 
-    public function calculateRequirements(Int $widgets): Array
+    public function calculateRequirements(Int $target): Array
     {
-        $requirements = [];
+        $widgets = $target;
         $options = $this->getOptions();
 
+        foreach ($options as $option) {
+            $requirements[$option] = 0;
+        }
 
         while ($widgets > 0) {
             $next = $this->getNext($options, $widgets);
             $widgets -= $next;
-            array_push($requirements, $next);
+            $requirements[$next] ++;
         }
 
-        return $requirements;
+        return $this->cleanUp($requirements);
+    }
+
+    function cleanUp($initialRequirements)
+    {
+        $requirements = [];
+
+        foreach ($initialRequirements as $requirement => $value) {
+            if ($value > 1) {
+                if (array_key_exists($requirement * 2, $initialRequirements)) {
+                    $requirements[$requirement * 2] ++;
+                } else {
+                    $requirements[$requirement] = $value;
+                }
+            } else {
+                $requirements[$requirement] = $value;
+            }
+        }
+
+        return array_filter($requirements);
     }
 
     /**
@@ -59,14 +81,29 @@ class Calculator {
         }
 
         foreach ($options as $key => $option) {
-            echo $widgets.'-'.$option.PHP_EOL;
+            //echo $widgets.'-'.$option.PHP_EOL;
             if ($widgets - $option == 0) {
                 return $option;
             }
 
             if ($widgets - $option >= 0) {
-                return in_array($option * 2, $options) ? $option * 2 : $option;
+                return $option;
             }
+
+
+
+            /*
+            if ($widgets - $option < 0 && $widgets - $options[$key + 1] > 0) {
+                return $option;
+            }
+            */
+
+            /*
+            if ($widgets - $option < 0 && (abs($widgets - $option) < ($options[$key + 1]))) {
+                return $option;
+            }
+            */
+
         }
 
         return min($options);
