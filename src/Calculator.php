@@ -113,7 +113,7 @@ class Calculator
         if ($this->singleCanReplaceDouble($option)) {
             $this->replaceDouble($option);
         } else {
-            $this->requirements[$option] ++;
+            $this->requirements[$option]++;
         }
     }
 
@@ -134,9 +134,12 @@ class Calculator
      */
     private function sortOptions(Array $options): Array
     {
-        $options = array_filter(array_unique($options), function ($item) {
-            return is_int($item);
-        });
+        $options = array_filter(
+            array_unique($options),
+            function ($item) {
+                return is_int($item);
+            }
+        );
 
         rsort($options);
 
