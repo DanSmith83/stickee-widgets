@@ -11,6 +11,7 @@ class CalculatorTest extends TestCase
         $this->assertEquals([5000, 2000, 1000, 500, 250], $calculator->getOptions());
     }
 
+
     public function testCalculation1()
     {
         $calculator = new \Widgets\Calculator([250, 500, 1000, 2000, 5000]);
@@ -38,6 +39,15 @@ class CalculatorTest extends TestCase
         ], $calculator->calculateRequirements(251));
     }
 
+    public function testCalculation499()
+    {
+        $calculator = new \Widgets\Calculator([250, 500, 1000, 2000, 5000]);
+
+        $this->assertEquals([
+            500  => 1,
+        ], $calculator->calculateRequirements(499));
+    }
+
     public function testCalculation501()
     {
         $calculator = new \Widgets\Calculator([250, 500, 1000, 2000, 5000]);
@@ -47,6 +57,25 @@ class CalculatorTest extends TestCase
             250  => 1,
         ], $calculator->calculateRequirements(501));
     }
+
+    public function testCalculation751()
+    {
+        $calculator = new \Widgets\Calculator([250, 500, 1000, 2000, 5000]);
+
+        $this->assertEquals([
+            500  => 2,
+        ], $calculator->calculateRequirements(751));
+    }
+
+    public function testCalculation999()
+    {
+        $calculator = new \Widgets\Calculator([250, 500, 1000, 2000, 5000]);
+
+        $this->assertEquals([
+            500  => 2,
+        ], $calculator->calculateRequirements(999));
+    }
+
 
     public function testCalculation12001()
     {

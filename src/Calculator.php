@@ -2,70 +2,139 @@
 
 namespace Widgets;
 
-class Calculator {
+/**
+ * Class Calculator
+ * @package Widgets
+ */
+class Calculator
+{
 
+    /**
+     * @var array
+     */
+    private $requirements = [];
+
+    /**
+     * @var array
+     */
+    private $options = [];
+
+    /**
+     * @var int
+     */
+    private $target = 0;
+
+
+    /**
+     * Calculator constructor.
+     * @param array $options
+     */
     public function __construct(Array $options)
     {
-        $this->setOptions($this->sortOptions($options));
+        $this->setOptions($options);
     }
 
-    public function getOptions()
+    /**
+     * @param Int $target
+     * @return Array
+     */
+    public function calculateRequirements(Int $target): Array
+    {
+        try {
+            $this->initialiseRequirements();
+            $this->setTarget($target);
+            $this->process();
+
+            return $this->removeEmptyOptions();
+        } catch (\Exception $e) {
+            echo sprintf('Unable to calculate requirements: %s', $e->getMessage());
+        }
+    }
+
+    /**
+     * @return Array
+     */
+    public function getOptions(): Array
     {
         return $this->options;
     }
 
-    public function calculateRequirements(Int $target): Array
+    /**
+     * @return Void
+     * @throws \Exception
+     */
+    private function initialiseRequirements(): Void
     {
-        $widgets = $target;
-        $options = $this->getOptions();
-
-        foreach ($options as $option) {
-            $requirements[$option] = 0;
+        if (empty($this->options)) {
+            throw new \Exception('Options not set');
         }
 
-        while ($widgets > 0) {
-            $next = $this->getNext($options, $widgets);
-            $widgets -= $next;
-            $requirements[$next] ++;
+        foreach ($this->options as $option) {
+            $this->requirements[$option] = 0;
         }
-
-        return $this->cleanUp($requirements);
-    }
-
-    function cleanUp($initialRequirements)
-    {
-        $requirements = [];
-
-        foreach ($initialRequirements as $requirement => $value) {
-            if ($value > 1) {
-                if (array_key_exists($requirement * 2, $initialRequirements)) {
-                    $requirements[$requirement * 2] ++;
-                } else {
-                    $requirements[$requirement] = $value;
-                }
-            } else {
-                $requirements[$requirement] = $value;
-            }
-        }
-
-        return array_filter($requirements);
     }
 
     /**
-     * @param $options
+     * @return Void
      */
-    private function setOptions($options)
+    private function addPack(): Void
     {
-        $this->options = $options;
+        if ($this->targetUnattainableWith(max($this->options))) {
+            $this->addGreatest();
+        } else {
+            $this->addClosestOption();
+        }
     }
+
+    /**
+     * @return Void
+     */
+    private function addGreatest(): Void
+    {
+        $this->addOptionToRequirements(max($this->options));
+    }
+
+    /**
+     * @return Void
+     */
+    private function addSmallest(): Void
+    {
+        $this->addOptionToRequirements(min($this->options));
+    }
+
+    /**
+     * @param Int $option
+     * @return Void
+     */
+    private function addOptionToRequirements(Int $option): Void
+    {
+        $this->decrementTarget($option);
+
+        if ($this->singleCanReplaceDouble($option)) {
+            $this->replaceDouble($option);
+        } else {
+            $this->requirements[$option] ++;
+        }
+    }
+
 
     /**
      * @param array $options
-     * @return array
+     * @return Void
      */
-    private function sortOptions(Array $options)
+    private function setOptions(Array $options): Void
     {
-        $options = array_filter( array_unique($options), function($item) {
+        $this->options = $this->sortOptions($options);
+    }
+
+
+    /**
+     * @param array $options
+     * @return Array
+     */
+    private function sortOptions(Array $options): Array
+    {
+        $options = array_filter(array_unique($options), function ($item) {
             return is_int($item);
         });
 
@@ -74,38 +143,89 @@ class Calculator {
         return $options;
     }
 
-    private function getNext($options, $widgets)
+
+    /**
+     * @param Int $option
+     * @return bool
+     */
+    private function singleCanReplaceDouble(Int $option): Bool
     {
-        if ($widgets >= max($options)) {
-            return max($options);
-        }
-
-        foreach ($options as $key => $option) {
-            //echo $widgets.'-'.$option.PHP_EOL;
-            if ($widgets - $option == 0) {
-                return $option;
-            }
-
-            if ($widgets - $option >= 0) {
-                return $option;
-            }
-
-
-
-            /*
-            if ($widgets - $option < 0 && $widgets - $options[$key + 1] > 0) {
-                return $option;
-            }
-            */
-
-            /*
-            if ($widgets - $option < 0 && (abs($widgets - $option) < ($options[$key + 1]))) {
-                return $option;
-            }
-            */
-
-        }
-
-        return min($options);
+        return $this->requirements[$option] == 1 && array_key_exists(($option * 2), $this->requirements);
     }
+
+
+    /**
+     * @param $option
+     * @return Void
+     */
+    private function replaceDouble($option): Void
+    {
+        $this->requirements[$option]--;
+        $this->requirements[$option * 2]++;
+    }
+
+    /**
+     * @param Int $target
+     * @return Void
+     * @throws \Exception
+     */
+    private function setTarget(Int $target): Void
+    {
+        if ($target > 50000) {
+            throw new \Exception('Too many widgets');
+        }
+
+        $this->target = $target;
+    }
+
+    /**
+     * @param $option
+     * @return bool
+     */
+    private function targetUnattainableWith($option): Bool
+    {
+        return $this->target >= $option;
+    }
+
+    /**
+     * @return Void
+     */
+    private function addClosestOption()
+    {
+        foreach ($this->options as $option) {
+            if ($this->targetUnattainableWith($option)) {
+                return $this->addOptionToRequirements($option);
+            }
+        }
+
+        return $this->addSmallest();
+    }
+
+    /**
+     * @return Array
+     */
+    private function removeEmptyOptions(): Array
+    {
+        return array_filter($this->requirements);
+    }
+
+    /**
+     * @param $option
+     * @return Void
+     */
+    private function decrementTarget($option): Void
+    {
+        $this->target -= $option;
+    }
+
+    /**
+     * @return Void
+     */
+    private function process(): Void
+    {
+        while ($this->target > 0) {
+            $this->addPack($this->target);
+        }
+    }
+
 }

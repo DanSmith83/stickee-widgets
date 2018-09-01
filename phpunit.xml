@@ -9,11 +9,9 @@
          processIsolation="false"
          stopOnError="false"
          stopOnFailure="false"
-         syntaxCheck="true"
-         strict="false"
          verbose="true">
     <testsuites>
-        <testsuite name="Filterable Test Suite">
+        <testsuite name="Tests">
             <directory suffix="Test.php">./tests</directory>
         </testsuite>
     </testsuites>
